@@ -17,10 +17,10 @@ let log = new Logger(true);
 
 export function dist() {
     let distdir = new Filepath("dist").mkdirsSync();
-    let zipfile = distdir.file("bot-ts.zip");
+    let zipfile = distdir.file("bot-typescript.zip");
     zipfile.rmSync();
     let args = ["-ry", zipfile.path()];
-    args.push("package.json", "tsconfig.json", "README.md", "LICENSE.txt");
+    args.push("package.json", "tsconfig.json", "README.md", "COPYRIGHT", "LICENSE");
     args.push(".vscode/launch.json", ".vscode/tasks.json");
     args.push(
         "src/botcore.ts",

@@ -1,14 +1,14 @@
 {
-    "name": "bot-ts",
+    "name": "bot-typescript",
     "version": "1.0.0",
     "description": "Build On Test for typescript.",
     "author": "Cplusedition Limited",
     "license": "Apache-2.0",
     "main": "none",
-    "homepage": "https://github/cplusedition/bot-ts",
+    "homepage": "https://github/cplusedition/bot-typescript",
     "repository": {
         "type": "git",
-        "url": "https://github/cplusedition/bot-ts.git"
+        "url": "https://github/cplusedition/bot-typescript.git"
     },
     "engines": {
         "node": ">=12.0.0"

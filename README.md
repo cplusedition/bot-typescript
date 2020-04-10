@@ -12,7 +12,7 @@ First of all, pull dependencies with:
 ```
 Open the project in vscode. Make sure the `bot-tsc` task is the default build task and the `bot-runner` task is the default test task. Run the build task to build.
 
-For a sample of a build script, see `builder.ts`.  Select the function name `dist` in `builder.ts` and invoke the test task `bot-runner`. The `dist` function would be executed and create the distribution zip file at `dist/bot-ts.zip`.
+For a sample of a build script, see `builder.ts`.  Select the function name `dist` in `builder.ts` and invoke the test task `bot-runner`. The `dist` function would be executed and create the distribution zip file at `dist/bot-typescript.zip`.
 
 ## License ##
-Released under Apache License 2.0. See `LICENSE`.
+Released under Apache License 2.0. See [`LICENSE`](LICENSE).

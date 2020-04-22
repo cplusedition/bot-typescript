@@ -15,9 +15,9 @@ import { Logger } from "./botcore";
 
 let log = new Logger(true);
 
-export function dist() {
+export function distSrc() {
     let distdir = new Filepath("dist").mkdirsSync();
-    let zipfile = distdir.file("bot-typescript.zip");
+    let zipfile = distdir.file("bot-typescript-src.zip");
     zipfile.rmSync();
     let args = ["-ry", zipfile.path()];
     args.push("package.json", "tsconfig.json", "README.md", "COPYRIGHT", "LICENSE");
@@ -33,3 +33,10 @@ export function dist() {
     child_process.execFileSync("zip", args);
     log.d(`# See ${zipfile.path()}`);
 }
+
+export function clean() {
+    new Filepath("dist").mkdirsSync().rmdirSubtreesSync();
+    new Filepath("out").mkdirsSync().rmdirSubtreesSync();
+    log.d("# Clean done.");
+}
+

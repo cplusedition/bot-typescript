@@ -4,11 +4,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "npm",
-            "script": "test",
-            "group": "build"
-        },
-        {
             "type": "typescript",
             "tsconfig": "tsconfig.json",
             "problemMatcher": [
@@ -23,7 +18,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "command": "tsc -t ES3 -m commonjs --outDir out --declaration --sourceMap --pretty --strict --alwaysStrict --strictNullChecks --noImplicitThis --noImplicitReturns --noImplicitAny src/*.ts",
+            "command": "tsc -t ES3 -m commonjs --outDir out --rootDir src --declaration --sourceMap --pretty --downlevelIteration --strict --noImplicitAny --strictNullChecks --strictFunctionTypes --strictPropertyInitialization --noImplicitThis --alwaysStrict --noUnusedLocals --noUnusedParameters --noImplicitReturns --noFallthroughCasesInSwitch --esModuleInterop src/*.ts",
             "problemMatcher": [
                 "$tsc"
             ]

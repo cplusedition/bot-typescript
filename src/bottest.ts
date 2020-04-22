@@ -9,7 +9,7 @@
   PURPOSE, MERCHANTABLITY OR NON-INFRINGEMENT.
 */
 
-import { Fun00, ILogger } from "./botcore";
+import { Fun00, ILogger, Fun01 } from "./botcore";
 
 export class TestTimer {
     private _start = Date.now();
@@ -30,11 +30,18 @@ export interface ITestLogger extends ILogger {
     dt(msg: string, timer?: TestTimer): void;
     it(msg: string, timer?: TestTimer): void;
     subtest(msg: string, code: Fun00): void;
+    enter(msg: string, code: Fun01<Promise<void>>): Promise<void>;
+    /// Like enter() but fail if there are errors.
+    enterX(msg: string, code: Fun01<Promise<void>>): Promise<void>;
 }
 
 export class TestLogger extends TestTimer implements ITestLogger {
+    private errors = 0;
     constructor(private _debugging: boolean = false) {
         super();
+    }
+    reset() {
+        this.errors = 0;
     }
     d(msg: string): void {
         if (this._debugging) {
@@ -69,6 +76,25 @@ export class TestLogger extends TestTimer implements ITestLogger {
     subtest(msg: string, code: Fun00) {
         this.d(msg);
         code();
+    }
+    async enter(msg: string, code: Fun01<Promise<void>>): Promise<void> {
+        this.d(`#+++ ${msg}`);
+        try {
+            await code();
+        } finally {
+            this.d(`#--- ${msg}`);
+        }
+    }
+    async enterX(msg: string, code: Fun01<Promise<void>>): Promise<void> {
+        this.d(`#+++ ${msg}`);
+        try {
+            await code();
+        } finally {
+            this.d(`#--- ${msg}`);
+            if (this.errors > 0) {
+                throw Error("Test failed");
+            }
+        }
     }
 }
 

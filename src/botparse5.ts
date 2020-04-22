@@ -119,7 +119,7 @@ export class Parse5Ut {
 
 export class Parse5SAXAdapterBase extends parse5.SAXParser {
 
-    constructor(options?: parse5.Options.SAXParserOptions) {
+    constructor() {
         super({ locationInfo: true });
         this.on("doctype", this.doctype);
         this.on("startTag", this.startTag);
@@ -128,19 +128,19 @@ export class Parse5SAXAdapterBase extends parse5.SAXParser {
         this.on("comment", this.comment);
     }
 
-    doctype(name: string, publicId: string, systemId: string, location?: Parse5Location): void {
+    doctype(_name: string, _publicId: string, _systemId: string, _location?: Parse5Location): void {
     }
 
-    startTag(name: string, attrs: Parse5Attribute[], selfClosing: boolean, location?: Parse5StartTagLocation): void {
+    startTag(_name: string, _attrs: Parse5Attribute[], _selfClosing: boolean, _location?: Parse5StartTagLocation): void {
     }
 
-    endTag(name: string, location?: Parse5Location): void {
+    endTag(_name: string, _location?: Parse5Location): void {
     }
 
-    text(text: string, location?: Parse5Location): void {
+    text(_text: string, _location?: Parse5Location): void {
     }
 
-    comment(text: string, location?: Parse5Location): void {
+    comment(_text: string, _location?: Parse5Location): void {
     }
 }
 
@@ -150,7 +150,7 @@ export class Parse5SAXAdapter extends Parse5SAXAdapterBase {
     private _isStyle = false;
 
     constructor(protected _output: fs.WriteStream, protected _log: ILogger, protected _input: string | null) {
-        super({ locationInfo: true });
+        super();
         this.on("doctype", this.doctype);
         this.on("startTag", this.startTag);
         this.on("endTag", this.endTag);
@@ -169,12 +169,12 @@ export class Parse5SAXAdapter extends Parse5SAXAdapterBase {
     isIgnoring(): boolean {
         return this._ignoring;
     }
-    doctype(name: string, publicId: string, systemId: string, location?: Parse5Location): void {
+    doctype(name: string, publicId: string, _systemId: string, _location?: Parse5Location): void {
         if (this._ignoring) return;
         this._output.write(`<!DOCTYPE ${name} "PUBLIC ${publicId}">`);
     }
 
-    startTag(name: string, attrs: Parse5Attribute[], selfClosing: boolean, location?: Parse5StartTagLocation): void {
+    startTag(name: string, attrs: Parse5Attribute[], selfClosing: boolean, _location?: Parse5StartTagLocation): void {
         const lc = name.toLowerCase();
         if (lc == "style") {
             this._isStyle = true;
@@ -187,10 +187,10 @@ export class Parse5SAXAdapter extends Parse5SAXAdapterBase {
                 this._output.write(`="${HtmlWriter.escAttr(attr.value)}"`);
             }
         }
-        this._output.write(">");
+        this._output.write(selfClosing ? "/>" : ">");
     }
 
-    endTag(name: string, location?: Parse5Location): void {
+    endTag(name: string, _location?: Parse5Location): void {
         if (this._ignoring) return;
         this._output.write(`</${name}>`);
         const lc = name.toLowerCase();

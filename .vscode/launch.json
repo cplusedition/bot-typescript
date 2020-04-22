@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "botrunner.js",
+            "name": "bot-runner",
             "program": "${workspaceFolder}/out/botrunner.js",
             "args" : [
                 "${fileBasenameNoExtension}",

@@ -1,4 +1,4 @@
-/*!
+/*
   Copyright (c) Cplusedition Limited. All rights reserved.
   Licensed under the Apache License, Version 2.0; You may obtain a
   copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -27,40 +27,40 @@ export type Parse5Location = parse5.MarkupData.Location;
 export type Parse5StartTagLocation = parse5.MarkupData.StartTagLocation;
 
 export class Parse5AttributeBuilder {
-    constructor(public _attrs: Parse5Attribute[]) {
+    constructor(public attrs$: Parse5Attribute[]) {
     }
     add_(name: string, value: string): this {
-        this._attrs.push({ name: name, value: value });
+        this.attrs$.push({ name: name, value: value });
         return this;
     }
 }
 
 export class Parse5Ut {
-    static getFirstElementChild(doc: Document2): Element2 | null {
+    static getFirstElementChild_(doc: Document2): Element2 | null {
         for (let c of doc.childNodes) {
             if (c.nodeType == Node.ELEMENT_NODE) return (c as Element2);
         }
         return null;
     }
-    static getElementByIdFromDocument(id: string, doc: Document2): Element2 | null {
-        let root = this.getFirstElementChild(doc);
+    static getElementByIdFromDocument_(id: string, doc: Document2): Element2 | null {
+        let root = this.getFirstElementChild_(doc);
         if (root == null) return null;
-        return Parse5Ut.elementSelector(root, (elm: Element2) => {
+        return Parse5Ut.elementSelector_(root, (elm: Element2) => {
             return id == elm.attribs["id"] ? elm : null;
         })
     }
-    static getElementById(id: string, node: Node2): Element2 | null {
-        return Parse5Ut.elementSelector(node, (elm: Element2) => {
+    static getElementById_(id: string, node: Node2): Element2 | null {
+        return Parse5Ut.elementSelector_(node, (elm: Element2) => {
             return id == elm.attribs["id"] ? elm : null;
         })
     }
-    static elementSelector(node: Node2, predicate: (elm: Element2) => Element2 | null): Element2 | null {
+    static elementSelector_(node: Node2, predicate: (elm: Element2) => Element2 | null): Element2 | null {
         if (node.nodeType == Node.ELEMENT_NODE) {
             let elm = node as Element2;
             let ret = predicate(elm);
             if (ret != null) return ret;
             for (let child of elm.childNodes) {
-                let ret = this.elementSelector(child, predicate);
+                let ret = this.elementSelector_(child, predicate);
                 if (ret != null) return ret;
             }
         }
@@ -72,16 +72,16 @@ export class Parse5Ut {
             .add_("type", "text/css")
             .add_("href", href);
     }
-    static addAttr(attrs: Parse5Attribute[], name: string, value: string): Parse5AttributeBuilder {
+    static addAttr_(attrs: Parse5Attribute[], name: string, value: string): Parse5AttributeBuilder {
         return new Parse5AttributeBuilder(attrs).add_(name, value);
     }
-    static getAttr(attrs: Parse5Attribute[], name: string): Parse5Attribute | null {
+    static getAttr_(attrs: Parse5Attribute[], name: string): Parse5Attribute | null {
         for (const attr of attrs) {
             if (attr.name == name) return attr;
         }
         return null;
     }
-    static removeAttr(attrs: Parse5Attribute[], name: string): boolean {
+    static removeAttr_(attrs: Parse5Attribute[], name: string): boolean {
         for (let index = 0, len = attrs.length; index < len; ++index) {
             if (attrs[index].name == name) {
                 attrs.splice(index, 1);
@@ -90,7 +90,7 @@ export class Parse5Ut {
         }
         return false;
     }
-    static removeAttrs(attrs: Parse5Attribute[], ...names: string[]): boolean {
+    static removeAttrs_(attrs: Parse5Attribute[], ...names: string[]): boolean {
         let toremove: number[] = [];
         for (let index = 0; index < attrs.length; ++index) {
             const aname = attrs[index].name;
@@ -105,11 +105,11 @@ export class Parse5Ut {
         }
         return toremove.length > 0;
     }
-    static hasClass(attrs: Parse5Attribute[], name: string): boolean {
-        const attr = Parse5Ut.getAttr(attrs, "class");
+    static hasClass_(attrs: Parse5Attribute[], name: string): boolean {
+        const attr = Parse5Ut.getAttr_(attrs, "class");
         return (attr != null && attr.value.indexOf(name) >= 0);
     }
-    static hasId(attrs: Parse5Attribute[], id: string): boolean {
+    static hasId_(attrs: Parse5Attribute[], id: string): boolean {
         for (const attr of attrs) {
             if (attr.name == "id" && attr.value == id) return true;
         }
@@ -121,119 +121,119 @@ export class Parse5SAXAdapterBase extends parse5.SAXParser {
 
     constructor() {
         super({ locationInfo: true });
-        this.on("doctype", this.doctype);
-        this.on("startTag", this.startTag);
-        this.on("endTag", this.endTag);
-        this.on("text", this.text);
-        this.on("comment", this.comment);
+        this.on("doctype", this.doctype_);
+        this.on("startTag", this.startTag_);
+        this.on("endTag", this.endTag_);
+        this.on("text", this.text_);
+        this.on("comment", this.comment_);
     }
 
-    doctype(_name: string, _publicId: string, _systemId: string, _location?: Parse5Location): void {
+    doctype_(_name: string, _publicId: string, _systemId: string, _location?: Parse5Location): void {
     }
 
-    startTag(_name: string, _attrs: Parse5Attribute[], _selfClosing: boolean, _location?: Parse5StartTagLocation): void {
+    startTag_(_name: string, _attrs: Parse5Attribute[], _selfClosing: boolean, _location?: Parse5StartTagLocation): void {
     }
 
-    endTag(_name: string, _location?: Parse5Location): void {
+    endTag_(_name: string, _location?: Parse5Location): void {
     }
 
-    text(_text: string, _location?: Parse5Location): void {
+    text_(_text: string, _location?: Parse5Location): void {
     }
 
-    comment(_text: string, _location?: Parse5Location): void {
+    comment_(_text: string, _location?: Parse5Location): void {
     }
 }
 
 export class Parse5SAXAdapter extends Parse5SAXAdapterBase {
 
-    private _ignoring = false;
-    private _isStyle = false;
+    private ignoring$ = false;
+    private isStyle$ = false;
 
-    constructor(protected _output: fs.WriteStream, protected _log: ILogger, protected _input: string | null) {
+    constructor(protected output$: fs.WriteStream, protected log$: ILogger, protected input$: string | null) {
         super();
-        this.on("doctype", this.doctype);
-        this.on("startTag", this.startTag);
-        this.on("endTag", this.endTag);
-        this.on("text", this.text);
-        this.on("comment", this.comment);
+        this.on("doctype", this.doctype_);
+        this.on("startTag", this.startTag_);
+        this.on("endTag", this.endTag_);
+        this.on("text", this.text_);
+        this.on("comment", this.comment_);
     }
 
-    startIgnoring() {
-        this._ignoring = true;
+    startIgnoring_() {
+        this.ignoring$ = true;
     }
 
-    stopIgnoring() {
-        this._ignoring = false;
+    stopIgnoring_() {
+        this.ignoring$ = false;
     }
 
-    isIgnoring(): boolean {
-        return this._ignoring;
+    isIgnoring_(): boolean {
+        return this.ignoring$;
     }
-    doctype(name: string, publicId: string, _systemId: string, _location?: Parse5Location): void {
-        if (this._ignoring) return;
-        this._output.write(`<!DOCTYPE ${name} "PUBLIC ${publicId}">`);
+    doctype_(name: string, publicId: string, _systemId: string, _location?: Parse5Location): void {
+        if (this.ignoring$) return;
+        this.output$.write(`<!DOCTYPE ${name} "PUBLIC ${publicId}">`);
     }
 
-    startTag(name: string, attrs: Parse5Attribute[], selfClosing: boolean, _location?: Parse5StartTagLocation): void {
+    startTag_(name: string, attrs: Parse5Attribute[], selfClosing: boolean, _location?: Parse5StartTagLocation): void {
         const lc = name.toLowerCase();
         if (lc == "style") {
-            this._isStyle = true;
+            this.isStyle$ = true;
         }
-        if (this._ignoring) return;
-        this._output.write(`<${name}`);
+        if (this.ignoring$) return;
+        this.output$.write(`<${name}`);
         for (const attr of attrs) {
-            this._output.write(` ${attr.name}`);
+            this.output$.write(` ${attr.name}`);
             if (attr.value.length >= 0) {
-                this._output.write(`="${HtmlWriter.escAttr(attr.value)}"`);
+                this.output$.write(`="${HtmlWriter.escAttr_(attr.value)}"`);
             }
         }
-        this._output.write(selfClosing ? "/>" : ">");
+        this.output$.write(selfClosing ? "/>" : ">");
     }
 
-    endTag(name: string, _location?: Parse5Location): void {
-        if (this._ignoring) return;
-        this._output.write(`</${name}>`);
+    endTag_(name: string, _location?: Parse5Location): void {
+        if (this.ignoring$) return;
+        this.output$.write(`</${name}>`);
         const lc = name.toLowerCase();
         if (lc == "style") {
-            this._isStyle = false;
+            this.isStyle$ = false;
         }
     }
 
-    text(text: string, location?: Parse5Location): void {
-        if (this._ignoring) return;
+    text_(text: string, location?: Parse5Location): void {
+        if (this.ignoring$) return;
         if (!location) throw new AssertionError();
-        if (this._input != null) {
-            text = this._input.substring(location.startOffset, location.endOffset);
-            this._output.write(text);
+        if (this.input$ != null) {
+            text = this.input$.substring(location.startOffset, location.endOffset);
+            this.output$.write(text);
         } else {
             // text is unescaped.
-            this._output.write(this._isStyle ? text : HtmlWriter.escText(text));
+            this.output$.write(this.isStyle$ ? text : HtmlWriter.escText_(text));
         }
     }
 
-    comment(text: string, location?: Parse5Location): void {
-        if (this._ignoring) return;
+    comment_(text: string, location?: Parse5Location): void {
+        if (this.ignoring$) return;
         if (!location) throw new AssertionError();
-        if (this._input != null) {
-            text = this._input.substring(location.startOffset, location.endOffset);
-            this._output.write(`<!-- ${text} -->`);
+        if (this.input$ != null) {
+            text = this.input$.substring(location.startOffset, location.endOffset);
+            this.output$.write(`<!-- ${text} -->`);
         } else {
             // text is unescaped.
-            this._output.write(`<!-- ${HtmlWriter.escText(text)} -->`);
+            this.output$.write(`<!-- ${HtmlWriter.escText_(text)} -->`);
         }
     }
 
 }
 
 export class Encoding {
-    static ascii = "ascii";
-    static utf8 = "utf8";
-    static utf16le = "utf16le";
-    static ucs2 = "ucs2";
-    static binary = "binary";
-    static latin1 = "latin1";
-    static win1252 = "win-1252";
-    static iso88591 = "ISO-8859-1";
-    static base64 = "base64";
-    static hex = "hex";
+    static ascii$ = "ascii";
+    static utf8$ = "utf8";
+    static utf16le$ = "utf16le";
+    static ucs2$ = "ucs2";
+    static binary$ = "binary";
+    static latin1$ = "latin1";
+    static win1252$ = "win-1252";
+    static iso88591$ = "ISO-8859-1";
+    static base64$ = "base64";
+    static hex$ = "hex";
 }

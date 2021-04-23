@@ -18,7 +18,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "command": "tsc -t ES3 -m commonjs --outDir out --rootDir src --declaration --sourceMap --pretty --downlevelIteration --strict --noImplicitAny --strictNullChecks --strictFunctionTypes --strictPropertyInitialization --noImplicitThis --alwaysStrict --noUnusedLocals --noUnusedParameters --noImplicitReturns --noFallthroughCasesInSwitch --esModuleInterop src/*.ts",
+            "command": "tsc -p .",
             "problemMatcher": [
                 "$tsc"
             ]
@@ -30,7 +30,7 @@
                 "kind": "test",
                 "isDefault": true
             },
-            "command": "node out/botrunner.js ${fileBasenameNoExtension} ${selectedText}",
+            "command": "node build/botrunner.js test/${fileBasenameNoExtension} ${selectedText}",
             "presentation": {
                 "echo": true,
                 "reveal": "always",

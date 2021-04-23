@@ -8,9 +8,10 @@
             "type": "node",
             "request": "launch",
             "name": "bot-runner",
-            "program": "${workspaceFolder}/out/botrunner.js",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/build/botrunner.js",
             "args" : [
-                "${fileBasenameNoExtension}",
+                "test/${fileBasenameNoExtension}",
                 "${selectedText}"
             ] 
         },

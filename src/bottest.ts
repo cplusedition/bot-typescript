@@ -1,4 +1,4 @@
-/*!
+/*
   Copyright (c) Cplusedition Limited. All rights reserved.
   Licensed under the Apache License, Version 2.0; You may obtain a
   copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -9,92 +9,113 @@
   PURPOSE, MERCHANTABLITY OR NON-INFRINGEMENT.
 */
 
-import { Fun00, ILogger, Fun01 } from "./botcore";
+import { Fun00, Fun01, ILogger } from "./botcore";
 
 export class TestTimer {
-    private _start = Date.now();
+    private start$ = Date.now();
+    private step$ = this.start$;
     constructor() { }
-    elapsed(): number {
-        return Date.now() - this._start;
+    /// Time elapsed in ms.
+    elapsed_(): number {
+        return Date.now() - this.start$;
     }
-    sec(): string {
-        let t = this.elapsed() / 1000;
+    /// Timm elapsed since last step.
+    step_(): number {
+        let last = this.step$;
+        this.step$ = Date.now();
+        return this.step$ - last;
+    }
+    /// Formatted string for time elapsed in sec.
+    sec_(width: number = 6): string {
+        return this.format_(this.elapsed_(), width);
+    }
+    format_(elapsed: number, width: number = 6): string {
+        let t = elapsed / 1000;
         if (t > 999.994) {
             return Math.round(t).toString();
         }
-        return t.toFixed(2).padStart(6, " ");
+        return t.toFixed(2).padStart(width, " ");
     }
 }
 
 export interface ITestLogger extends ILogger {
-    dt(msg: string, timer?: TestTimer): void;
-    it(msg: string, timer?: TestTimer): void;
-    subtest(msg: string, code: Fun00): void;
-    enter(msg: string, code: Fun01<Promise<void>>): Promise<void>;
-    /// Like enter() but fail if there are errors.
-    enterX(msg: string, code: Fun01<Promise<void>>): Promise<void>;
+    errorCount_(): number;
+    dt_(msg: string, timer?: TestTimer): void;
+    it_(msg: string, timer?: TestTimer): void;
+    subtest_(msg: string, code: Fun00): void;
+    enter_(msg: string, code: Fun01<Promise<void>>): Promise<void>;
+    logs_(): Array<string>;
 }
 
 export class TestLogger extends TestTimer implements ITestLogger {
-    private errors = 0;
-    constructor(private _debugging: boolean = false) {
+    private m_errors = 0;
+    private m_logs = new Array<string>();
+    constructor(private m_debugging: boolean = false, private m_keeplogs = true) {
         super();
     }
-    reset() {
-        this.errors = 0;
+    reset_() {
+        this.m_errors = 0;
     }
-    d(msg: string): void {
-        if (this._debugging) {
-            console.log(msg);
+    private log_(msg: string): void {
+        if (this.m_keeplogs) {
+            this.m_logs.push(msg);
         }
-    }
-    i(msg: string): void {
         console.log(msg);
     }
-    w(msg: string, exception?: any): void {
-        this.it(msg, this);
-        if (this._debugging && exception) {
-            console.log(`${exception}`);
+    logs_() {
+        return this.m_logs;
+    }
+    d_(msg: string): void {
+        if (this.m_debugging) {
+            this.log_(msg);
         }
     }
-    e(msg: string, exception?: any): void {
-        this.it(msg, this);
-        if (this._debugging && exception) {
-            console.log(`${exception}`);
+    i_(msg: string): void {
+        this.log_(msg);
+    }
+    w_(msg: string, exception?: any): void {
+        this.it_(msg, this);
+        if (this.m_debugging && exception) {
+            this.log_(`${exception}`);
         }
     }
-    dt(msg: string, timer?: TestTimer): void {
-        if (this._debugging) {
+    e_(msg?: string, exception?: any): void {
+        ++this.m_errors;
+        if (msg !== undefined) {
+            this.it_(msg, this);
+        }
+        if (this.m_debugging && exception) {
+            this.log_(`${exception}`);
+        }
+    }
+    dt_(msg: string, timer?: TestTimer): void {
+        if (this.m_debugging) {
             if (!timer) timer = this;
-            console.log(`${timer.sec()}s: ${msg}`);
+            this.log_(`### ${timer.format_(timer.step_())}/${timer.sec_()}s: ${msg}`);
         }
     }
-    it(msg: string, timer?: TestTimer): void {
+    it_(msg: string, timer?: TestTimer): void {
         if (!timer) timer = this;
-        console.log(`${timer.sec()}s: ${msg}`);
+        this.log_(`${timer.sec_()}s: ${msg}`);
     }
-    subtest(msg: string, code: Fun00) {
-        this.d(msg);
-        code();
+    errorCount_(): number {
+        return this.m_errors;
     }
-    async enter(msg: string, code: Fun01<Promise<void>>): Promise<void> {
-        this.d(`#+++ ${msg}`);
+    subtest_(msg: string, code: Fun00) {
+        this.dt_(`#+++ ${msg}`);
         try {
-            await code();
+            code();
         } finally {
-            this.d(`#--- ${msg}`);
+            this.dt_(`#--- ${msg}`);
+            if (this.m_errors > 0) throw Error("Test failed");
         }
     }
-    async enterX(msg: string, code: Fun01<Promise<void>>): Promise<void> {
-        this.d(`#+++ ${msg}`);
-        try {
-            await code();
-        } finally {
-            this.d(`#--- ${msg}`);
-            if (this.errors > 0) {
-                throw Error("Test failed");
-            }
-        }
+    async enter_(msg: String, code: Fun01<Promise<void>>): Promise<void> {
+        this.dt_(`#+++ ${msg}`);
+        return await code().finally(() => {
+            this.dt_(`#--- ${msg}`);
+            if (this.m_errors > 0) throw Error("Test failed");
+        });
     }
 }
 

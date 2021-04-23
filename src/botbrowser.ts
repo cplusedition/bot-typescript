@@ -1,4 +1,4 @@
-/*!
+/*
   Copyright (c) Cplusedition Limited. All rights reserved.
   Licensed under the Apache License, Version 2.0; You may obtain a
   copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,90 +11,107 @@
 
 /// Utilities that works in browser.
 
-import { Attrs } from "./botcore";
+export type NodeOrString = Node | string;
+export type NodeX = Node | null;
+export type NodeXX = Node | null | undefined;
+export type ElementX = Element | null;
+export type ElementXX = Element | null | undefined;
+export type HTMLElementX = HTMLElement | null;
+export type HTMLElementXX = HTMLElement | null | undefined;
+export type RangeX = Range | null;
+export type RangeXX = Range | null | undefined;
 
-export class DomBuilder {
+export class DomUt {
 
-    private _doc: Document;
-    private _stack: Element[] = [];
-
-    constructor(private _cursor: Element) {
-        this._doc = _cursor.ownerDocument as Document;
+    static stopEvent_(event: Event) {
+        event.stopPropagation();
+        event.preventDefault();
     }
 
-    cursor_(): Element {
-        return this._cursor;
+    static asHTMLDocument(doc: any): HTMLDocument | null {
+        return doc !== null
+            && doc !== undefined
+            && (doc instanceof HTMLDocument || Object.prototype.toString.call(doc) == "[object HTMLDocument]")
+            ? doc as HTMLDocument
+            : null;
     }
 
-    push_(): this {
-        this._stack.push(this._cursor);
-        return this;
+    private static ELMPAT = new RegExp("^\\[object HTML\\w*Element\\]\$");
+
+    static asHTMLElement(elm: any): HTMLElementX {
+        return elm !== null
+            && elm !== undefined
+            && (elm instanceof HTMLElement || this.ELMPAT.test(Object.prototype.toString.call(elm)))
+            ? elm as HTMLElement
+            : null;
     }
 
-    pop_(): this {
-        let e = this._stack.pop();
-        if (e) {
-            this._cursor = e;
+    static matchingTarget_(event: Event, selector: string): Element | null {
+        if (selector == null) return null;
+        let target = this.asHTMLElement(event.target);
+        let currentTarget = this.asHTMLElement(event.currentTarget);
+        if (target != null && currentTarget != null) {
+            const top = currentTarget.parentElement;
+            do {
+                if (target != null && target.matches(selector)) return target;
+                target = target.parentElement;
+            } while (target != null && target != top);
         }
+        return null;
+    }
+}
+
+export interface IndexedItems<V> {
+    readonly length: number;
+    item(index: number): V | null;
+}
+
+export class NullableItemsIterable<V> implements IterableIterator<V | null> {
+    private index$ = 0;
+    private length$: number;
+    constructor(private items$: IndexedItems<V>) {
+        this.length$ = items$.length;
+    }
+    [Symbol.iterator](): IterableIterator<V | null> {
         return this;
     }
-
-    peek_(): this {
-        this._cursor = this._stack[this._stack.length - 1];
-        return this;
-    }
-
-    text_(s: string): this {
-        this._cursor.appendChild(this._doc.createTextNode(s));
-        return this;
-    }
-
-    append_(c: string | Element, attrs?: Attrs): this {
-        const e = this.createelm_(c, attrs);
-        this._cursor.appendChild(e);
-        return this;
-    }
-
-    child_(c: string | Element, attrs?: Attrs): this {
-        const e = this.createelm_(c, attrs);
-        this._cursor.appendChild(e);
-        this._cursor = e;
-        return this;
-    }
-
-    childBefore_(node: Node, c: string | Element, attrs?: Attrs): this {
-        const e = this.createelm_(c, attrs);
-        this._cursor.insertBefore(e, node);
-        this._cursor = e;
-        return this;
-    }
-
-    empty_(): this {
-        for (let c = this._cursor.firstChild; c != null; c = this._cursor.firstChild) {
-            this._cursor.removeChild(c);
-        }
-        return this;
-    }
-
-    append1_(c: string | Element, ...classes: string[]): this {
-        return this.append_(c, { "class": classes.join(" ") });
-    }
-
-    child1_(c: string | Element, ...classes: string[]): this {
-        return this.child_(c, { "class": classes.join(" ") });
-    }
-
-    childBefore1_(node: Node, c: string | Element, ...classes: string[]): this {
-        return this.childBefore_(node, c, { "class": classes.join(" ") });
-    }
-
-    private createelm_(c: string | Element, attrs?: Attrs): Element {
-        let ret = (typeof c === "string") ? this._doc.createElement(c) : c;
-        if (attrs) {
-            for (let key in attrs) {
-                ret.setAttribute(key, attrs[key]);
+    next(): IteratorResult<V | null> {
+        if (this.index$ < this.length$) {
+            return {
+                value: this.items$.item(this.index$++),
+                done: false,
+            };
+        } else {
+            return {
+                value: undefined,
+                done: true,
             }
         }
-        return ret;
+    }
+}
+
+export class ItemsIterable<V> implements IterableIterator<V> {
+    private index$ = 0;
+    private length$: number;
+    constructor(private items$: IndexedItems<V | null>) {
+        this.length$ = items$.length;
+    }
+    [Symbol.iterator](): IterableIterator<V> {
+        return this;
+    }
+    next(): IteratorResult<V> {
+        while (this.index$ < this.length$) {
+            let item = this.items$.item(this.index$);
+            ++this.index$;
+            if (item == null) continue;
+            return {
+                value: item,
+                done: false,
+            };
+        }
+        return {
+            value: undefined,
+            done: true,
+        }
     }
 }

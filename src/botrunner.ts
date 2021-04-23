@@ -1,4 +1,4 @@
-/*!
+/*
   Copyright (c) Cplusedition Limited. All rights reserved.
   Licensed under the Apache License, Version 2.0; You may obtain a
   copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -10,30 +10,36 @@
 */
 
 export interface Task {
-    run(): void;
+    run_(): void;
 }
 
 export class BotRunner {
 
     static usage(): void {
-        console.log("Usage: ${process.execPath} [-h] <filename> <testname>");
+        console.log(`Usage: ${process.execPath} <filename> <testname> [<methodname>]`);
     }
 
-    static run(): void {
+    static run_(): void {
         let filename = process.argv[2];
         let testname = process.argv[3];
         if (!filename || !testname) {
             BotRunner.usage();
             return;
         }
-        const t = require(`./${filename}`);
+        const path = filename.startsWith("/") ? filename : "./" + filename;
+        const t = require(path);
         const f: any | null | undefined = t[testname];
         if (f instanceof Function) {
-            f.apply(t);
+            const m = (process.argv.length >= 5) ? process.argv[4] : "run_";
+            if (f["prototype"] && f["prototype"][`${m}`]) {
+                new f()[`${m}`]();
+            } else {
+                f.apply(t);
+            }
         } else {
-            throw new Error(`Function ${testname}() not found.`)
+            throw new Error(`${testname} () not found in ${filename}: ${f}`)
         }
     }
 }
 
-BotRunner.run();
+BotRunner.run_();
